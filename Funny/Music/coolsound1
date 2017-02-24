@@ -1,0 +1,32 @@
+:beep frequency=600 length=165ms;
+ :delay 165ms;
+ 
+ :beep frequency=50 length=83ms;
+ :delay 83ms;
+ 
+ :beep frequency=600 length=165ms;
+ :delay 165ms;
+ 
+ :beep frequency=50 length=83ms;
+ :delay 83ms;
+ 
+ :beep frequency=650 length=165ms;
+ :delay 165ms;
+ 
+ :beep frequency=600 length=165ms;
+ :delay 165ms;
+ 
+ :beep frequency=50 length=83ms;
+ :delay 83ms;
+ 
+ :beep frequency=600 length=165ms;
+ :delay 165ms;
+ 
+ :beep frequency=700 length=275ms;
+ :delay 275ms;
+ 
+ :beep frequency=800 length=275ms;
+ :delay 275ms;
+ 
+ :beep frequency=900 length=110ms;
+ :delay 110ms;
