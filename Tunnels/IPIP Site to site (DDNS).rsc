@@ -13,7 +13,7 @@
 :local OldRemoteAddr [/interface ipip get [find comment=$CommentIDF ] remote-address]
 
 if ($NewLocalAddr != $OldLocalAddr) do={
-    /interface ipip set [find comment=$CommentIDF] remote-address=$NewLocalAddr
+    /interface ipip set [find comment=$CommentIDF] local-address=$NewLocalAddr
     /log info "Local tunnel IP for $CommentIDF has changed from $OldLocalAddr to $NewLocalAddr"
 }
 
