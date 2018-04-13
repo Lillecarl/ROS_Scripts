@@ -21,9 +21,3 @@ if ($NewRemoteAddr != $OldRemoteAddr) do={
     /interface gre set [find name=$Interface] remote-address=$NewRemoteAddr
     /log info "Remote tunnel IP for $Interface has changed from $OldRemoteAddr to $NewRemoteAddr"
 }
-
-:local OldFWAddr [/ip firewall filter get [find name=$Interface] src-address]
-if ($NewRemoteAddr != $OldFWAddr) do={
-    /ip firewall filter set [find name=$Interface] src-address=$NewRemoteAddr
-    /log info "Tunnel FW IP for $Interface has changed from $OldFWAddr to $NewRemoteAddr"
-}
