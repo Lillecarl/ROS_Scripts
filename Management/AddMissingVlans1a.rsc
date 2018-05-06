@@ -9,8 +9,8 @@
 :global "COUNTER1" 0
 
 ##DO NOT CHANGE ANYTHING ELSE BELOW##
-##
-##
+###
+###
 #Functions
 
 #Create function to add all the vlans to the router
