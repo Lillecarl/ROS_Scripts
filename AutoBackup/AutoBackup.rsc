@@ -4,10 +4,14 @@
 :local saveRawExport true
 :local verboseRawExport false
 
-:local FTPServer "ftphostname"
+:local FTPEnable true
+:local FTPServer ""
 :local FTPPort 21
-:local FTPUser "ftpusername"
-:local FTPPass "ftppassword"
+:local FTPUser ""
+:local FTPPass ""
+
+:local SMTPEnable true
+:local SMTPAddress "asdf@asdf.com"
 
 
 :local ts [/system clock get time]
@@ -16,7 +20,13 @@
 :local ds [/system clock get date]
 :set ds ([:pick $ds 7 11].[:pick $ds 0 3].[:pick $ds 4 6])
 
-:local fname ("BACKUP-".[/system identity get name]."-".$ds."-".$ts)
+:local DNSName ""
+
+:do {
+    :set DNSName ("-".[/ip cloud get dns-name])
+}
+
+:local fname ("BACKUP-".[/system identity get name].$DNSName."-".$ds."-".$ts)
 
 :if ($saveUserDB) do={
   /tool user-manager database save name=($fname.".umb")
@@ -42,8 +52,14 @@ if ($saveRawExport) do={
 :foreach backupFile in=[/file find] do={
   :set backupFileName ([/file get $backupFile name])
   :if ([:typeof [:find $backupFileName $fname]] != "nil") do={
-    :log info "Uploading $backupFileName to FTP"
-    /tool fetch address=$FTPServer port=$FTPPort src-path=$backupFileName user=$FTPUser password=$FTPPass dst-path=$backupFileName mode=ftp upload=yes
+    if ($FTPEnable) do={
+        :log info "Uploading $backupFileName to FTP"
+        /tool fetch address=$FTPServer port=$FTPPort src-path=$backupFileName user=$FTPUser password=$FTPPass dst-path=$backupFileName mode=ftp upload=yes
+    }
+    if ($SMTPEnable) do={
+        :log info "Uploading $backupFileName to SMTP"
+        /tool e-mail send to=$SMTPAddress body="RouterOS Backup" subject="RouterOS Backup" file=$backupFileName
+    }
   }
 }
 
