@@ -3,7 +3,7 @@ A quick 'n dirty on deploying unimus with ssh keyauth instead of dirty password 
 
 1. Run ssh-keygen
 2. Choose where to save pub and privkey
-3. Upload pubkey to a https://host, preferably one that runs php too for randomstring.php [1]
+3. Upload pubkey to a https:// host, preferably one that runs php too for randomstring.php [1]
 4. Upload privkey to unimus
 5. Run script on every single MikroTik device you wanna join to Unimus [2]
 
