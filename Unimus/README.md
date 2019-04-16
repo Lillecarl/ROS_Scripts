@@ -9,5 +9,6 @@ A quick 'n dirty on deploying unimus with ssh keyauth instead of dirty password 
 
 
 1: Since MikroTik doesn't support disabling password authentication for users we genrate a long random password that we don't save anywhere and never see again
+
 2: You should also edit the script to add a firewall rule that allows input traffic on port 22, I didn't add this here because you might want to limit the firewall rule to an address-list that you've already got deployed or something like that, your own responsibility.
 
