@@ -6,147 +6,59 @@
 # Schedule this script to run once a minute
 # See it resolve and fix all your tunnels
 
-
 :local LocalDNSPrefix "LocalDNS:"
 :local RemoteDNSPrefix "RemoteDNS:"
 
-:foreach i in=[/interface eoip find] do={
-    :local ifacename [/interface eoip get $i name]
-    :local comment [/interface eoip get $i comment]
+:local ProcessTunnels do={
+# [:parse ($menu . " command")] will resolve to whatever menu is specified in the function call
+    :foreach i in=[[:parse ($menu . " find")]] do={
+        :local ifacename [[:parse ($menu . " get $i name")]]
+        :local comment [[:parse ($menu . " get $i comment")]]
 
-    :local localdnsnamepos [:find $comment $LocalDNSPrefix -1]
-    if ([:len $localdnsnamepos] > 0) do={
-        :local start ($localdnsnamepos + [:len $LocalDNSPrefix])
-        :local end ([:find $comment " " ($localdnsnamepos + [:len $LocalDNSPrefix])])
-        if ([:len $end] = 0) do={
-            :set end [:len $comment]
-        }
-        :local dnsname [:pick $comment $start $end]
-        :local currentip [/interface eoip get $i local-address]
-        :local newip ""
-        :do { :set newip [:resolve $dnsname] } on-error={}
-        if ([:len $newip] <= 0) do={
-            :log info "Skipping update on tunnel $ifacename, nxdomain"
-        } else={
-            if ($currentip != $newip) do={
-                /interface eoip set $i local-address $newip
-               :log info "Updated tunnel $ifacename with local-address $newip"
+        :local localdnsnamepos [:find $comment $LocalDNSPrefix -1]
+        if ([:len $localdnsnamepos] > 0) do={
+            :local start ($localdnsnamepos + [:len $LocalDNSPrefix])
+            :local end ([:find $comment " " ($localdnsnamepos + [:len $LocalDNSPrefix])])
+            if ([:len $end] = 0) do={
+                :set end [:len $comment]
+            }
+            :local dnsname [:pick $comment $start $end]
+            :local currentip [[:parse ($menu . " get $i local-address")]]
+            :local newip ""
+            :do { :set newip [:resolve $dnsname] } on-error={}
+            if ([:len $newip] <= 0) do={
+                :log info "Skipping update on tunnel $ifacename, nxdomain"
+            } else={
+                if ($currentip != $newip) do={
+                    [:parse ($menu . " set $i local-address $newip")]
+                    :log info "Updated tunnel $ifacename with local-address $newip"
+                }
             }
         }
-    }
-    
-    :local remotednsnamepos [:find $comment $RemoteDNSPrefix -1]
-    if ([:len $remotednsnamepos] > 0) do={
-        :local start ($remotednsnamepos + [:len $RemoteDNSPrefix])
-        :local end ([:find $comment " " ($remotednsnamepos + [:len $RemoteDNSPrefix])])
-        if ([:len $end] = 0) do={
-            :set end [:len $comment]
-        }
-        :local dnsname [:pick $comment $start $end]
-        :local currentip [/interface eoip get $i remote-address]
-        :local newip ""
-        :do { :set newip [:resolve $dnsname] } on-error={}
-        if ([:len $newip] <= 0) do={
-            :log info "Skipping update on tunnel $ifacename, nxdomain"
-        } else={
-            if ($currentip != $newip) do={
-                /interface eoip set $i remote-address $newip
-               :log info "Updated tunnel $ifacename with remote-address $newip"
+        
+        :local remotednsnamepos [:find $comment $RemoteDNSPrefix -1]
+        if ([:len $remotednsnamepos] > 0) do={
+            :local start ($remotednsnamepos + [:len $RemoteDNSPrefix])
+            :local end ([:find $comment " " ($remotednsnamepos + [:len $RemoteDNSPrefix])])
+            if ([:len $end] = 0) do={
+                :set end [:len $comment]
+            }
+            :local dnsname [:pick $comment $start $end]
+            :local currentip [[:parse ($menu . " get $i remote-address")]]
+            :local newip ""
+            :do { :set newip [:resolve $dnsname] } on-error={}
+            if ([:len $newip] <= 0) do={
+                :log info "Skipping update on tunnel $ifacename, nxdomain"
+            } else={
+                if ($currentip != $newip) do={
+                    [:parse ($menu . " set $i remote-address $newip")]
+                    :log info "Updated tunnel $ifacename with remote-address $newip"
+                }
             }
         }
     }
 }
 
-:foreach i in=[/interface gre find] do={
-    :local ifacename [/interface gre get $i name]
-    :local comment [/interface gre get $i comment]
-
-    :local localdnsnamepos [:find $comment $LocalDNSPrefix -1]
-    if ([:len $localdnsnamepos] > 0) do={
-        :local start ($localdnsnamepos + [:len $LocalDNSPrefix])
-        :local end ([:find $comment " " ($localdnsnamepos + [:len $LocalDNSPrefix])])
-        if ([:len $end] = 0) do={
-            :set end [:len $comment]
-        }
-        :local dnsname [:pick $comment $start $end]
-        :local currentip [/interface gre get $i local-address]
-        :local newip ""
-        :do { :set newip [:resolve $dnsname] } on-error={}
-        if ([:len $newip] <= 0) do={
-            :log info "Skipping update on tunnel $ifacename, nxdomain"
-        } else={
-            if ($currentip != $newip) do={
-                /interface gre set $i local-address $newip
-               :log info "Updated tunnel $ifacename with local-address $newip"
-            }
-        }
-    }
-    
-    :local remotednsnamepos [:find $comment $RemoteDNSPrefix -1]
-    if ([:len $remotednsnamepos] > 0) do={
-        :local start ($remotednsnamepos + [:len $RemoteDNSPrefix])
-        :local end ([:find $comment " " ($remotednsnamepos + [:len $RemoteDNSPrefix])])
-        if ([:len $end] = 0) do={
-            :set end [:len $comment]
-        }
-        :local dnsname [:pick $comment $start $end]
-        :local currentip [/interface gre get $i remote-address]
-        :local newip ""
-        :do { :set newip [:resolve $dnsname] } on-error={}
-        if ([:len $newip] <= 0) do={
-            :log info "Skipping update on tunnel $ifacename, nxdomain"
-        } else={
-            if ($currentip != $newip) do={
-                /interface gre set $i remote-address $newip
-               :log info "Updated tunnel $ifacename with remote-address $newip"
-            }
-        }
-    }
-}
-
-:foreach i in=[/interface ipip find] do={
-    :local ifacename [/interface ipip get $i name]
-    :local comment [/interface ipip get $i comment]
-
-    :local localdnsnamepos [:find $comment $LocalDNSPrefix -1]
-    if ([:len $localdnsnamepos] > 0) do={
-        :local start ($localdnsnamepos + [:len $LocalDNSPrefix])
-        :local end ([:find $comment " " ($localdnsnamepos + [:len $LocalDNSPrefix])])
-        if ([:len $end] = 0) do={
-            :set end [:len $comment]
-        }
-        :local dnsname [:pick $comment $start $end]
-        :local currentip [/interface ipip get $i local-address]
-        :local newip ""
-        :do { :set newip [:resolve $dnsname] } on-error={}
-        if ([:len $newip] <= 0) do={
-            :log info "Skipping update on tunnel $ifacename, nxdomain"
-        } else={
-            if ($currentip != $newip) do={
-                /interface ipip set $i local-address $newip
-               :log info "Updated tunnel $ifacename with local-address $newip"
-            }
-        }
-    }
-    
-    :local remotednsnamepos [:find $comment $RemoteDNSPrefix -1]
-    if ([:len $remotednsnamepos] > 0) do={
-        :local start ($remotednsnamepos + [:len $RemoteDNSPrefix])
-        :local end ([:find $comment " " ($remotednsnamepos + [:len $RemoteDNSPrefix])])
-        if ([:len $end] = 0) do={
-            :set end [:len $comment]
-        }
-        :local dnsname [:pick $comment $start $end]
-        :local currentip [/interface ipip get $i remote-address]
-        :local newip ""
-        :do { :set newip [:resolve $dnsname] } on-error={}
-        if ([:len $newip] <= 0) do={
-            :log info "Skipping update on tunnel $ifacename, nxdomain"
-        } else={
-            if ($currentip != $newip) do={
-                /interface ipip set $i remote-address $newip
-               :log info "Updated tunnel $ifacename with remote-address $newip"
-            }
-        }
-    }
-}
+$ProcessTunnels LocalDNSPrefix=$LocalDNSPrefix RemoteDNSPrefix=$RemoteDNSPrefix menu="/interface gre" 
+$ProcessTunnels LocalDNSPrefix=$LocalDNSPrefix RemoteDNSPrefix=$RemoteDNSPrefix menu="/interface eoip" 
+$ProcessTunnels LocalDNSPrefix=$LocalDNSPrefix RemoteDNSPrefix=$RemoteDNSPrefix menu="/interface ipip" 
