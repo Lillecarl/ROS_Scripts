@@ -1,4 +1,4 @@
-:local dynamictimeout 120
+:local dynamictimeout 20
 
 :local addedentry true
 :while ($addedentry) do={
@@ -12,22 +12,22 @@
             :local comment [/ip firewall address-list get $j comment]
             :local parentdisabled false
 
-            :if ([:len $comment] > 0) do={
                 :do {
                     :set parentdisabled [/ip firewall address-list get [:toid $comment] disabled]
                 } on-error { }
-            }
             
-            if ([:typeof [:toip $dynaddress]] = "ip" or [:typeof [:toip6 $dynaddress]] = "ip6") do={
-                :local existingentry [/ip firewall address-list find where list=$tlist and address=$dynaddress]
+            if (!$parentdisabled) do={
+                if ([:typeof [:toip $dynaddress]] = "ip" or [:typeof [:toip6 $dynaddress]] = "ip6") do={
+                    :local existingentry [/ip firewall address-list find where list=$tlist and address=$dynaddress]
 
-                :if ([:len $existingentry] > 0) do={
-                    :if ([/ip firewall address-list get $existingentry dynamic]  and !$parentdisabled) do={
-                        /ip firewall address-list set $existingentry timeout=$dynamictimeout
+                    :if ([:len $existingentry] > 0) do={
+                        :if ([/ip firewall address-list get $existingentry dynamic]) do={
+                            /ip firewall address-list set $existingentry timeout=$dynamictimeout
+                        }
+                    } else={
+                        /ip firewall address-list add list=$tlist address=$dynaddress timeout=$dynamictimeout comment=[:tostr $i]
+                        :set addedentry true
                     }
-                } else={
-                    /ip firewall address-list add list=$tlist address=$dynaddress timeout=$dynamictimeout comment=[:tostr $i]
-                    :set addedentry true
                 }
             }
         }
