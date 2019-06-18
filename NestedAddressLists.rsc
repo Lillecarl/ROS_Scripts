@@ -1,4 +1,3 @@
-# This obviously must be a longer time than the script runs on in the scheduler
 :local dynamictimeout 120
 
 :local addedentry true
@@ -13,16 +12,17 @@
             :local comment [/ip firewall address-list get $j comment]
             :local parentdisabled false
 
-            :do {
-                :set parentdisabled [/ip firewall address-list get [:toid $comment] disabled]
-                :put [/ip firewall address-list get [:toid $comment] list]
-            } on-error { }
+            :if ([:len $comment] > 0) do={
+                :do {
+                    :set parentdisabled [/ip firewall address-list get [:toid $comment] disabled]
+                } on-error { }
+            }
             
             if ([:typeof [:toip $dynaddress]] = "ip" or [:typeof [:toip6 $dynaddress]] = "ip6") do={
                 :local existingentry [/ip firewall address-list find where list=$tlist and address=$dynaddress]
 
-                :if ([:len $existingentry] > 0 and !$parentdisabled) do={
-                    :if ([/ip firewall address-list get $existingentry dynamic]) do={
+                :if ([:len $existingentry] > 0) do={
+                    :if ([/ip firewall address-list get $existingentry dynamic]  and !$parentdisabled) do={
                         /ip firewall address-list set $existingentry timeout=$dynamictimeout
                     }
                 } else={
