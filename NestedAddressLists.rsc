@@ -17,17 +17,15 @@
                 } on-error { }
             
             if (!$parentdisabled) do={
-                if ([:typeof [:toip $dynaddress]] = "ip" or [:typeof [:toip6 $dynaddress]] = "ip6") do={
-                    :local existingentry [/ip firewall address-list find where list=$tlist and address=$dynaddress]
+                :local existingentry [/ip firewall address-list find where list=$tlist and address=$dynaddress]
 
-                    :if ([:len $existingentry] > 0) do={
-                        :if ([/ip firewall address-list get $existingentry dynamic]) do={
-                            /ip firewall address-list set $existingentry timeout=$dynamictimeout
-                        }
-                    } else={
-                        /ip firewall address-list add list=$tlist address=$dynaddress timeout=$dynamictimeout comment=[:tostr $i]
-                        :set addedentry true
+                :if ([:len $existingentry] > 0) do={
+                    :if ([/ip firewall address-list get $existingentry dynamic]) do={
+                        /ip firewall address-list set $existingentry timeout=$dynamictimeout
                     }
+                } else={
+                    /ip firewall address-list add list=$tlist address=$dynaddress timeout=$dynamictimeout comment=[:tostr $i]
+                    :set addedentry true
                 }
             }
         }
