@@ -35,9 +35,12 @@
 }
 
 :local newdns ([/ip firewall address-list get ([find where list=$listname and dynamic=no]->0) address])
+:local curdns [/ip firewall nat get ([find where comment=$listname]->0) to-addresses]
 
-:do {
-    /ip firewall nat set ([find where comment=$listname]->0) to-addresses=$newdns
-} on-error={
-    :error "Can't find NAT rule with exact comment $listname"
+:if ($curdns != $newdns) do={
+    :do {
+        /ip firewall nat set ([find where comment=$listname]->0) to-addresses=$newdns
+    } on-error={
+        :error "Can't find NAT rule with exact comment $listname"
+    }
 }
