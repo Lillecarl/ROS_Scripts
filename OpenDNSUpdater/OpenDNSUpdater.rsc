@@ -9,7 +9,11 @@
 :local curip ([/tool fetch url="https://checkip.amazonaws.com/" mode=http output=user as-value]->"data")
 
 if ($lastip != $curip) do={
-    /tool fetch url="https://updates.opendns.com/nic/update\3Fhostname=$odnshostname" user=$odnsusername password=$odnspassword mode=http output=user as-value
-    /log error "Updated OpenDNS public IP"
-    :set $lastip $curip
+    :local response ([/tool fetch url="https://updates.opendns.com/nic/update\3Fhostname=$odnshostname" user=$odnsusername password=$odnspassword mode=http output=user as-value]->"data")
+    /log error "Updated OpenDNS public IP, response was: $response"
+    :if ([:len [:find $response "good" -1]] > 0) do={
+        :set $lastip $curip
+    } else={
+        /system script environment remove [find where name=lastip]
+    }
 }
