@@ -8,7 +8,7 @@
     :delay 1s; /certificate sign server name=server ca=ca
     :delay 1s; /certificate export-certificate ca export-passphrase=""
 
-    :delay 1s; /ip pool add name=ovpn ranges=10.128.128.2-10.128.128.254
+    :delay 1s; /ip pool add name=ovpn ranges=10.128.128.2-10.128.128.253
     :delay 1s; /ppp profile add dns-server=10.128.128.1 interface-list=LAN local-address=10.128.128.1 name=ovpn remote-address=ovpn use-compression=no use-encryption=yes
     :delay 1s; /interface ovpn-server server set default-profile=ovpn certificate=server enabled=yes port=1194 auth=sha1 cipher=aes128
     :delay 1s; /ip firewall address-list add list=ovpn address=$domainname
