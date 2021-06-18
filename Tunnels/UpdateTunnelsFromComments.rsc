@@ -9,52 +9,86 @@
 :local LocalDNSPrefix "LocalDNS:"
 :local RemoteDNSPrefix "RemoteDNS:"
 
+# Arguments: DNSPrefix, EntryComment
+:local GetAddressFromComments do={
+    :local DNSnamepos [:find $EntryComment $DNSPrefix -1]
+    if ([:len $DNSnamepos] > 0) do={
+        :local start ($DNSnamepos + [:len $DNSPrefix])
+        :local end ([:find $EntryComment " " ($DNSnamepos + [:len $DNSPrefix])])
+        
+        if ([:len $end] = 0) do={
+            :set end [:len $EntryComment]
+        }
+        :local ExtractedDNSName [:pick $EntryComment $start $end]
+        :local ResolvedIP ""
+        
+        :do {
+            :set ResolvedIP [:resolve $ExtractedDNSName]
+        } on-error={
+            return ""
+        }
+        return $ResolvedIP
+    }
+    return ""
+}
+
+# Arguments: LocalDNSPrefix, RemoteDNSPrefix, menu
 :local ProcessTunnels do={
-# [:parse ($menu . " command")] will resolve to whatever menu is specified in the function call
+    # Forward declaration of function
+    :local GetAddressFromComments;
+
+    # [:parse ($menu . " command")] will resolve to whatever menu is specified in the function call
+
     :foreach i in=[[:parse ($menu . " find")]] do={
         :local ifacename [[:parse ($menu . " get $i name")]]
         :local comment [[:parse ($menu . " get $i comment")]]
 
-        :local localdnsnamepos [:find $comment $LocalDNSPrefix -1]
-        if ([:len $localdnsnamepos] > 0) do={
-            :local start ($localdnsnamepos + [:len $LocalDNSPrefix])
-            :local end ([:find $comment " " ($localdnsnamepos + [:len $LocalDNSPrefix])])
-            if ([:len $end] = 0) do={
-                :set end [:len $comment]
-            }
-            :local dnsname [:pick $comment $start $end]
-            :local currentip [[:parse ($menu . " get $i local-address")]]
-            :local newip ""
-            :do { :set newip [:resolve $dnsname] } on-error={}
-            if ([:len $newip] <= 0) do={
-                :log info "Skipping update on tunnel $ifacename, nxdomain"
-            } else={
-                if ($currentip != $newip) do={
-                    [:parse ($menu . " set $i local-address $newip")]
-                    :log info "Updated tunnel $ifacename with local-address $newip"
-                }
+        :local newip [$GetAddressFromComments DNSPrefix=$LocalDNSPrefix EntryComment=$comment]
+
+        if ([:len $newip] <= 0) do={
+            :log info "Skipping update on tunnel $ifacename, nxdomain"
+        } else={
+            if ($currentip != $newip) do={
+                [:parse ($menu . " set $i local-address $newip")]
+                :log info "Updated tunnel $ifacename with local-address $newip"
             }
         }
-        
-        :local remotednsnamepos [:find $comment $RemoteDNSPrefix -1]
-        if ([:len $remotednsnamepos] > 0) do={
-            :local start ($remotednsnamepos + [:len $RemoteDNSPrefix])
-            :local end ([:find $comment " " ($remotednsnamepos + [:len $RemoteDNSPrefix])])
-            if ([:len $end] = 0) do={
-                :set end [:len $comment]
+
+        :set newip [$GetAddressFromComments DNSPrefix=$RemoteDNSPrefix EntryComment=$comment]
+
+        if ([:len $newip] <= 0) do={
+            :log info "Skipping update on tunnel $ifacename, nxdomain"
+        } else={
+            if ($currentip != $newip) do={
+                [:parse ($menu . " set $i remote-address $newip")]
+                :log info "Updated tunnel $ifacename with remote-address $newip"
             }
-            :local dnsname [:pick $comment $start $end]
-            :local currentip [[:parse ($menu . " get $i remote-address")]]
-            :local newip ""
-            :do { :set newip [:resolve $dnsname] } on-error={}
-            if ([:len $newip] <= 0) do={
-                :log info "Skipping update on tunnel $ifacename, nxdomain"
-            } else={
-                if ($currentip != $newip) do={
-                    [:parse ($menu . " set $i remote-address $newip")]
-                    :log info "Updated tunnel $ifacename with remote-address $newip"
-                }
-            }
+        }
+    }
+}
+
+foreach i in=[/ip ipsec peer find where !dynamic] do={
+    :local tunnelname [/ip ipsec peer get $i name]
+	:local comment [/ip ipsec peer get $i comment]
+    :local newip [$GetAddressFromComments DNSPrefix=$LocalDNSPrefix EntryComment=$comment]
+
+    if ([:len $newip] <= 0) do={
+        :log info "Skipping update on ipsec tunnel $tunnelname, nxdomain"
+    } else={
+        if ($currentip != $newip) do={
+            /ip ipsec peer set $i local-address=$newip
+            :log info "Updated ipsec tunnel $tunnelname with local address $newip"
+        }
+    }
+
+    :set newip [$GetAddressFromComments DNSPrefix=$LocalDNSPrefix EntryComment=$comment]
+
+    if ([:len $newip] <= 0) do={
+        :log info "Skipping remote update on ipsec tunnel $tunnelname, nxdomain"
+    } else={
+        if ($currentip != $newip) do={
+            /ip ipsec peer set $i address=$newip
+            :log info "Updated ipsec tunnel $tunnelname with remote address $newip"
         }
     }
 }
