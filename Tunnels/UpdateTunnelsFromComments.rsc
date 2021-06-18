@@ -81,7 +81,7 @@ foreach i in=[/ip ipsec peer find where !dynamic] do={
         }
     }
 
-    :set newip [$GetAddressFromComments DNSPrefix=$LocalDNSPrefix EntryComment=$comment]
+    :set newip [$GetAddressFromComments DNSPrefix=$RemoteDNSPrefix EntryComment=$comment]
 
     if ([:len $newip] <= 0) do={
         :log info "Skipping remote update on ipsec tunnel $tunnelname, nxdomain"
